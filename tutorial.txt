@@ -1,0 +1,55 @@
+Primeiramente aconselho o dowload do Fedora XFCE e uso do VMWare. A versão do MongoDB que usei foi v4.2.6. Obviamente terão que instalar nos dois sistemas. Tanto no de vcs quanto na VM.
+Depois já aconselho de cara a desativarem seus fireall:
+	sudo systemctl stop firewalld
+	sudo systemctl disablle firewalld
+Vcs devem identificar o ip das máquinas que estão usando. Duas é o suficiente, mas podem ser usadas mais máquinas. 
+Para ver os ips basta digitarem no terminal: 
+	ip addr
+O comando retornará os ips da máquina. O mesmo procedimento deve ser feito tanto na VM quanto no hospedeiro.
+O próximo passo consiste em setar nas máquinas os ips que elas deverão enxergar. Mas primeiramente aconselho a mudarem o nome do host na VM: 
+	sudo dnf install systemd (Fedroa e derivados)
+	sudo apt install systemd (Ubuntu e derivados)
+	sudo pacman -S systemd (Manjaro e derivados)
+	sudo hostnamectl set-hostname "O nome que sem as aspas: Aconselho mongoFedora"
+Outra forma de mudar o hostname é digitar:
+	sudo nano /etc/hostname
+Depois de digitar o comando anterior é só alterar o nome e digitar ctrl+o e enter para salvar e depois ctrl+x para sair.
+O próximo passo é setar os ips. Em todas as máquinas digite o comando:
+	sudo nano /etc/hosts
+Lá vc deverar acrescentar no inicio do arquivo algo como o exemplo abaixo:
+
+	192.X.25.7  primary (o ip da sua máquina, pode deixar o primary msm)
+	192.X.25.15  mongoFedora (Aqui vc coloca o ip da VM e o nome setado)
+
+Após salvar o próximo passo é configurar o arquivo de configuração do MongoDB. Em quase todas as distros estará em:
+	sudo nano /etc/mongodb.conf
+
+Nesse arquivo aconselho comentarem as linhas de forma que bindIp, port e replSet fiquem comentadas, não existindo as linhas devem ser criadas:
+	  #port: 27017
+	  #bindIp: 127.0.0.1
+    	  #replSet = <rs0>
+
+Feitos os passos anteriores vá em um terminal da máquina hospedeira e digite:
+
+	mongod --bind_ip 192.X.168.X --port 27020 --replSet "rs0" (depois de bind ip é o ip da sua máquina hospedeira, a porta pode ser outra, o que importa é que sejam as mesmas.)
+
+Depois vá em outro terminal e digit:
+	mongo --host 192.X.168.X --port 27020
+Após rodar o comando anterior vc estará em um terninal com o MongoDB. Se vc tiver sorte ele estará escrito:
+	rs0:PRIMARY> (pode ser que apareça rs0:PRIMARY) 
+	Dentro desse shell do mongo vc deve digitar:
+		rs.initiate()
+
+Agora basta ir na VM e digitar:
+	mongod --bind_ip 192.X.168.X --port 27020 --replSet "rs0" (O ip deverá ser o da máquina virtual)
+
+Após isso no terminal do mongo primário vc digitará:
+	rs.add("192.X.25.X:27020") (indicando que a VM será um nó secundário, lembrando que o ip aqui é o da VM)
+
+Para testar sua conexão basta digitar em um terminal em sua máquina hospedeira o seguinte comando:
+	mongo --port 27020 --host 192.X.25.X (O ip deve ser o da  máquina virtual, já que vc está querendo acessar onde foi salvo o nó primário) 
+
+
+
+
+	

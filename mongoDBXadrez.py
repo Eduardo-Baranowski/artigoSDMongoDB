@@ -1,5 +1,5 @@
 from pymongo import MongoClient
-cliente = MongoClient('localhost', 27017)
+cliente = MongoClient('192.X.X.X', 27020) #Aqui o ip deve ser o de vcs.
 banco = cliente.artigo_xadrez
 
 partidas = []
